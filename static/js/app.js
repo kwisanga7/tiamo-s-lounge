@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.alert').forEach((el)=>{window.setTimeout(()=>{if(window.bootstrap)bootstrap.Alert.getOrCreateInstance(el).close()},6500)})});

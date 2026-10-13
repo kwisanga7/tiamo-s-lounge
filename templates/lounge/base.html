@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tiamo's Lounge{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'events' %}{% endif %}">
+      <span class="brand-mark">T</span><span><b>tiamo's</b><small>LOUNGE & EVENTS</small></span>
+    </a>
+    <div class="side-label">WORKSPACE</div>
+    <nav class="side-nav">
+      {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i> Overview</a>
+      <a href="{% url 'events' %}" class="{% if 'event' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>
+      <a href="{% url 'ticket_list' %}" class="{% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}"><i class="bi bi-ticket-perforated"></i> Tickets</a>
+      <a href="{% url 'check_in' %}" class="{% if request.resolver_match.url_name == 'check_in' %}active{% endif %}"><i class="bi bi-qr-code-scan"></i> Check-in</a>
+      <a href="{% url 'staff_list' %}" class="{% if 'staff' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-people"></i> Team</a>
+      {% else %}
+      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a>
+      <a href="{% url 'login' %}"><i class="bi bi-shield-lock"></i> Staff sign in</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-bottom"><div class="venue-chip"><span class="status-dot"></span><span><b>Venue status</b><small>Ready for tonight</small></span></div>
+      {% if user.is_authenticated %}<div class="user-row"><span class="avatar">{{ user.username|first|upper }}</span><span><b>{{ user.get_full_name|default:user.username }}</b><small>Team workspace</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>{% endif %}
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>tiamo's</b></div><div class="breadcrumb-text">Tiamo's Lounge <span>/</span> {% block crumb %}Workspace{% endblock %}</div><div class="top-actions"><span class="date-pill"><i class="bi bi-calendar3"></i> {% now "D, j M Y" %}</span><span class="top-avatar">{{ user.username|first|upper|default:'T' }}</span></div></header>
+    <section class="page-content">
+      {% if messages %}<div class="message-stack">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}</div>{% endif %}
+      {% block content %}{% endblock %}
+      <footer class="footer-note">© {% now "Y" %} Tiamo's Lounge <span>Made for good nights.</span></footer>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body></html>
