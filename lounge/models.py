@@ -52,6 +52,34 @@ class StaffMember(models.Model):
         return f"{self.name} · {self.get_role_display()}"
 
 
+class UserProfile(models.Model):
+    class Role(models.TextChoices):
+        USER = "user", "User"
+        EMPLOYEE = "employee", "Employee"
+        MANAGER = "manager", "Manager"
+        FINANCE = "finance", "Finance"
+        ADMIN = "admin", "Admin"
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
+
+    class Meta:
+        ordering = ["user__username"]
+
+    def __str__(self):
+        return f"{self.user.get_username()} · {self.get_role_display()}"
+
+    def save(self, *args, **kwargs):
+        # Django's staff flag only opens the admin site; app permissions remain
+        # controlled by this profile role and the role checks in lounge.views.
+        if not self.user.is_superuser:
+            should_be_staff = self.role != self.Role.USER
+            if self.user.is_staff != should_be_staff:
+                self.user.is_staff = should_be_staff
+                self.user.save(update_fields=["is_staff"])
+        super().save(*args, **kwargs)
+
+
 class Ticket(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Payment pending"

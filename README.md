@@ -22,7 +22,29 @@ A Django starter app for lounge operations, event listings, ticket reservations,
 
 4. Start the app with `py manage.py runserver` and visit http://127.0.0.1:8000/.
 
-Sign in with the superuser account at `/accounts/login/`. The Django admin at `/admin/` is available for managing records and users.
+Guests can create an account at `/accounts/signup/` and sign in at `/accounts/login/` with their email or username. They can browse events and make bookings. Guest accounts do not have access to staff management pages.
+
+Email/password sign-up currently does not send an email verification message. Google sign-in uses Google OAuth after credentials are configured. An email service will be needed to verify addresses and send password-reset emails.
+
+Sign in with the superuser account to manage the lounge. Use **User accounts** in the dashboard to grant lounge roles to existing accounts. Django's `/admin/` remains available to superusers for built-in administration.
+
+The Admin dashboard's **User accounts** page supports creating, viewing, editing, disabling, and deleting regular accounts, plus assigning one of five roles: User, Employee, Manager, Finance, or Admin. The superuser can assign the Admin role to a trusted account. App Admin accounts can manage app users but do not become Django superusers or gain access to Django's built-in admin settings. Role access is enforced in the app: Employees can check guests in; Finance can review tickets and confirm payment; Managers can manage events, staff, tickets, and check-in; Admins can use all lounge tools and manage accounts.
+
+## Google sign-in
+
+Google sign-in is optional. Create an OAuth 2.0 client in Google Cloud Console for a **Web application** and add this authorized redirect URI for local development:
+
+`http://127.0.0.1:8000/accounts/google/login/callback/`
+
+In the same PowerShell window used to start Django, set the credentials without placing them in project files:
+
+```powershell
+$env:GOOGLE_OAUTH_CLIENT_ID = "your-client-id"
+$env:GOOGLE_OAUTH_CLIENT_SECRET = "your-client-secret"
+python manage.py runserver
+```
+
+The Google buttons appear on sign-in and registration once both values are set. For a deployed site, add its HTTPS callback URI in Google Cloud and set the same environment variables on the host. Google’s OAuth setup and allauth’s provider configuration are described in the [allauth Google provider guide](https://docs.allauth.org/en/latest/socialaccount/providers/google.html).
 
 ## What's included
 

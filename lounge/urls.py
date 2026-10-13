@@ -15,4 +15,9 @@ urlpatterns = [
     path("check-in/", views.check_in, name="check_in"),
     path("accounts/login/", views.login_view, name="login"),
     path("accounts/logout/", views.logout_view, name="logout"),
+    path("accounts/signup/", views.signup_view, name="signup"),
+    path("users/", views.user_list, name="user_list"),
+    path("users/new/", views.user_create, name="user_create"),
+    path("users/<int:pk>/edit/", views.user_edit, name="user_edit"),
+    path("users/<int:pk>/delete/", views.user_delete, name="user_delete"),
 ]

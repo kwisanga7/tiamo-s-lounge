@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, StaffMember, Ticket
+from .models import Event, StaffMember, Ticket, UserProfile
 
 
 @admin.register(Event)
@@ -22,3 +22,10 @@ class TicketAdmin(admin.ModelAdmin):
     list_filter = ("status", "event")
     search_fields = ("buyer_name", "buyer_email", "ticket_code")
     readonly_fields = ("ticket_code", "created_at", "paid_at", "checked_in_at")
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "role")
+    list_filter = ("role",)
+    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name")

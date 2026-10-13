@@ -18,23 +18,27 @@
     </a>
     <div class="side-label">WORKSPACE</div>
     <nav class="side-nav">
-      {% if user.is_authenticated %}
+      {% if user.is_staff %}
       <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i> Overview</a>
-      <a href="{% url 'events' %}" class="{% if 'event' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>
-      <a href="{% url 'ticket_list' %}" class="{% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}"><i class="bi bi-ticket-perforated"></i> Tickets</a>
-      <a href="{% url 'check_in' %}" class="{% if request.resolver_match.url_name == 'check_in' %}active{% endif %}"><i class="bi bi-qr-code-scan"></i> Check-in</a>
-      <a href="{% url 'staff_list' %}" class="{% if 'staff' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-people"></i> Team</a>
+      {% if user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'events' %}" class="{% if 'event' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>{% endif %}
+      {% if user.profile.role == 'finance' or user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'ticket_list' %}" class="{% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}"><i class="bi bi-ticket-perforated"></i> Tickets</a>{% endif %}
+      {% if user.profile.role == 'employee' or user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'check_in' %}" class="{% if request.resolver_match.url_name == 'check_in' %}active{% endif %}"><i class="bi bi-qr-code-scan"></i> Check-in</a>{% endif %}
+      {% if user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'staff_list' %}" class="{% if 'staff' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-people"></i> Team</a>{% endif %}
+      {% if user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'user_list' %}" class="{% if 'user_' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-person-gear"></i> User accounts</a>{% endif %}
+      {% elif user.is_authenticated %}
+      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a>
       {% else %}
       <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a>
-      <a href="{% url 'login' %}"><i class="bi bi-shield-lock"></i> Staff sign in</a>
+      <a href="{% url 'login' %}"><i class="bi bi-shield-lock"></i> Sign in</a>
+      <a href="{% url 'signup' %}"><i class="bi bi-person-plus"></i> Create account</a>
       {% endif %}
     </nav>
     <div class="sidebar-bottom"><div class="venue-chip"><span class="status-dot"></span><span><b>Venue status</b><small>Ready for tonight</small></span></div>
-      {% if user.is_authenticated %}<div class="user-row"><span class="avatar">{{ user.username|first|upper }}</span><span><b>{{ user.get_full_name|default:user.username }}</b><small>Team workspace</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>{% endif %}
+      {% if user.is_authenticated %}<div class="user-row"><span class="avatar">{{ user.username|first|upper }}</span><span><b>{{ user.get_full_name|default:user.username }}</b><small>{% if user.is_staff %}Team workspace{% else %}Guest account{% endif %}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>{% endif %}
     </div>
   </aside>
   <main class="main-area">
-    <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>tiamo's</b></div><div class="breadcrumb-text">Tiamo's Lounge <span>/</span> {% block crumb %}Workspace{% endblock %}</div><div class="top-actions"><span class="date-pill"><i class="bi bi-calendar3"></i> {% now "D, j M Y" %}</span><span class="top-avatar">{{ user.username|first|upper|default:'T' }}</span></div></header>
+    <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>tiamo's</b></div><div class="breadcrumb-text">Tiamo's Lounge <span>/</span> {% block crumb %}Workspace{% endblock %}</div><div class="top-actions"><span class="date-pill"><i class="bi bi-calendar3"></i> {% now "D, j M Y" %}</span>{% if user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="signout-top"><i class="bi bi-box-arrow-right"></i> Sign out</button></form>{% else %}<a class="top-link" href="{% url 'login' %}">Sign in</a><a class="top-signup" href="{% url 'signup' %}">Join us</a>{% endif %}</div></header>
     <section class="page-content">
       {% if messages %}<div class="message-stack">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}</div>{% endif %}
       {% block content %}{% endblock %}
