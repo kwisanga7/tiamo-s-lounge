@@ -1,0 +1,7 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Create a public update · Tiamo's Lounge{% endblock %}
+{% block crumb %}Create public post{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">COMMUNITY UPDATES</div><h1>Create a post</h1><p>Your update will appear on the public community updates page.</p></div></div>
+<section class="panel form-panel post-form-panel"><form method="post" enctype="multipart/form-data" class="form-stack">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>{{ field }}{% if field.name == 'image' %}<small class="help-text">Optional image, up to 5 MB.</small>{% elif field.name == 'video' %}<small class="help-text">Optional MP4, WebM, or MOV video, up to 30 MB.</small>{% elif field.name == 'notify_role' %}<small class="help-text">The selected team will receive an in-app notification about this post.</small>{% endif %}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="btn btn-gold">Publish update <i class="bi bi-send"></i></button><a class="btn btn-outline-secondary" href="{% url 'profile' %}">Cancel</a></div></form></section>
+{% endblock %}

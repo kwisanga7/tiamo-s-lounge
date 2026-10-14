@@ -22,13 +22,15 @@ A Django starter app for lounge operations, event listings, ticket reservations,
 
 4. Start the app with `py manage.py runserver` and visit http://127.0.0.1:8000/.
 
+If you already have a database, run `py manage.py migrate` again after project updates. Event photos uploaded locally are stored under `media/events/`.
+
 Guests can create an account at `/accounts/signup/` and sign in at `/accounts/login/` with their email or username. They can browse events and make bookings. Guest accounts do not have access to staff management pages.
 
 Email/password sign-up currently does not send an email verification message. Google sign-in uses Google OAuth after credentials are configured. An email service will be needed to verify addresses and send password-reset emails.
 
 Sign in with the superuser account to manage the lounge. Use **User accounts** in the dashboard to grant lounge roles to existing accounts. Django's `/admin/` remains available to superusers for built-in administration.
 
-The Admin dashboard's **User accounts** page supports creating, viewing, editing, disabling, and deleting regular accounts, plus assigning one of five roles: User, Employee, Manager, Finance, or Admin. The superuser can assign the Admin role to a trusted account. App Admin accounts can manage app users but do not become Django superusers or gain access to Django's built-in admin settings. Role access is enforced in the app: Employees can check guests in; Finance can review tickets and confirm payment; Managers can manage events, staff, tickets, and check-in; Admins can use all lounge tools and manage accounts.
+The Admin dashboard's **User accounts** page supports creating, viewing, editing, disabling, and deleting regular accounts, plus assigning roles: User, Employee, Manager, Finance, Developer, or Admin. The superuser can assign the Admin role to a trusted account. App Admin accounts can manage app users but do not become Django superusers or gain access to Django's built-in admin settings. Role access is enforced in the app: Employees can check guests in; Finance can review tickets and confirm payment; Managers can manage events, staff, tickets, and check-in; Developers can review and update support requests; Admins can use all lounge tools and manage accounts.
 
 ## Google sign-in
 
@@ -49,11 +51,18 @@ The Google buttons appear on sign-in and registration once both values are set. 
 ## What's included
 
 - Staff-only management dashboard with event, team and ticket summaries.
+- Role-specific workspaces for Admin, Manager, Finance, Employee, and Developer, plus a guest account dashboard.
+- Personal profile and password settings for every signed-in account.
+- Editable profile picture uploads with a live preview and profile image storage under `media/profiles/`.
+- Employee guest roster with ticket status, name search, QR scanning, manual code entry, and paid-ticket check-in.
 - Event creation and published public event pages.
+- Event photo uploads and a public home page gallery for all published events.
 - Guest ticket reservation records and payment status tracking.
 - QR ticket generation for bookings marked as paid.
 - Staff check-in with camera QR scanning in supported browsers and manual code entry as a fallback.
 - Team directory and Django admin screens.
+- Support Center for submitting help requests, tracking status, and Developer support triage.
+- In-app notifications for booking, payment, check-in, support, account, event, and team activity.
 
 ## Payment status
 

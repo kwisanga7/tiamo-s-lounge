@@ -11,9 +11,9 @@
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
 </head>
 <body>
-<div class="app-shell">
-  <aside class="sidebar">
-    <a class="brand" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'events' %}{% endif %}">
+<div class="app-shell{% if is_home or not user.is_staff %} public-shell{% endif %}">
+  {% if user.is_staff and not is_home %}<aside class="sidebar">
+    <a class="brand" href="{% if user.is_staff %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}">
       <span class="brand-mark">T</span><span><b>tiamo's</b><small>LOUNGE & EVENTS</small></span>
     </a>
     <div class="side-label">WORKSPACE</div>
@@ -23,26 +23,30 @@
       {% if user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'events' %}" class="{% if 'event' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>{% endif %}
       {% if user.profile.role == 'finance' or user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'ticket_list' %}" class="{% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}"><i class="bi bi-ticket-perforated"></i> Tickets</a>{% endif %}
       {% if user.profile.role == 'employee' or user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'check_in' %}" class="{% if request.resolver_match.url_name == 'check_in' %}active{% endif %}"><i class="bi bi-qr-code-scan"></i> Check-in</a>{% endif %}
+      {% if user.profile.role == 'employee' or user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'guest_list' %}" class="{% if request.resolver_match.url_name == 'guest_list' %}active{% endif %}"><i class="bi bi-person-lines-fill"></i> Guest list</a>{% endif %}
       {% if user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'staff_list' %}" class="{% if 'staff' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-people"></i> Team</a>{% endif %}
+      {% if user.profile.role == 'manager' or user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'team_operations' %}" class="{% if 'team_' in request.resolver_match.url_name or 'staff_task' in request.resolver_match.url_name or 'staff_shift' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-calendar2-week"></i> Tasks & shifts</a>{% endif %}
       {% if user.profile.role == 'admin' or user.is_superuser %}<a href="{% url 'user_list' %}" class="{% if 'user_' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-person-gear"></i> User accounts</a>{% endif %}
+      <a href="{% url 'support_center' %}" class="{% if 'support' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-life-preserver"></i> Support center</a>
+      <a href="{% url 'notification_list' %}" class="{% if 'notification' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-bell"></i> Notifications{% if unread_notification_count %}<span class="nav-notification-count">{{ unread_notification_count }}</span>{% endif %}</a><a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><i class="bi bi-person-circle"></i> My profile</a>
       {% elif user.is_authenticated %}
-      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a>
+      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a><a href="{% url 'lounge_posts' %}"><i class="bi bi-megaphone"></i> Updates</a>
       {% else %}
-      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a>
+      <a href="{% url 'events' %}" class="active"><i class="bi bi-calendar2-event"></i> What's on</a><a href="{% url 'lounge_posts' %}"><i class="bi bi-megaphone"></i> Updates</a>
       <a href="{% url 'login' %}"><i class="bi bi-shield-lock"></i> Sign in</a>
       <a href="{% url 'signup' %}"><i class="bi bi-person-plus"></i> Create account</a>
       {% endif %}
     </nav>
     <div class="sidebar-bottom"><div class="venue-chip"><span class="status-dot"></span><span><b>Venue status</b><small>Ready for tonight</small></span></div>
-      {% if user.is_authenticated %}<div class="user-row"><span class="avatar">{{ user.username|first|upper }}</span><span><b>{{ user.get_full_name|default:user.username }}</b><small>{% if user.is_staff %}Team workspace{% else %}Guest account{% endif %}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>{% endif %}
+      {% if user.is_authenticated %}<div class="user-row">{% if user.profile.profile_picture %}<img class="avatar user-avatar" src="{{ user.profile.profile_picture.url }}" alt="{{ user.get_full_name|default:user.username }} profile picture">{% else %}<span class="avatar">{{ user.username|first|upper }}</span>{% endif %}<span><b>{{ user.get_full_name|default:user.username }}</b><small>{% if user.is_staff %}Team workspace{% else %}Guest account{% endif %}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>{% endif %}
     </div>
-  </aside>
+  </aside>{% endif %}
   <main class="main-area">
-    <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>tiamo's</b></div><div class="breadcrumb-text">Tiamo's Lounge <span>/</span> {% block crumb %}Workspace{% endblock %}</div><div class="top-actions"><span class="date-pill"><i class="bi bi-calendar3"></i> {% now "D, j M Y" %}</span>{% if user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="signout-top"><i class="bi bi-box-arrow-right"></i> Sign out</button></form>{% else %}<a class="top-link" href="{% url 'login' %}">Sign in</a><a class="top-signup" href="{% url 'signup' %}">Join us</a>{% endif %}</div></header>
-    <section class="page-content">
+    {% if user.is_staff and not is_home %}<header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>tiamo's</b></div><div class="breadcrumb-text">Tiamo's Lounge <span>/</span> {% block crumb %}Workspace{% endblock %}</div><div class="top-actions"><span class="date-pill"><i class="bi bi-calendar3"></i> {% now "D, j M Y" %}</span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="signout-top"><i class="bi bi-box-arrow-right"></i> Sign out</button></form></div></header>{% else %}<header class="public-nav"><a class="public-brand" href="{% url 'home' %}"><span class="brand-mark">T</span><span><b>tiamo's</b><small>LOUNGE & EVENTS</small></span></a><nav class="public-links"><a href="{% url 'home' %}">Home</a><a href="{% url 'events' %}">What's on</a><a href="{% url 'home' %}#about">The lounge</a></nav><div class="public-actions">{% if user.is_staff %}<a class="top-link" href="{% url 'dashboard' %}">Workspace</a>{% elif user.is_authenticated %}<a class="top-link" href="{% url 'dashboard' %}">My account</a>{% endif %}{% if user.is_authenticated %}<a class="top-link" href="{% url 'support_center' %}">Support</a><a class="top-link" href="{% url 'profile' %}">Profile</a><a class="notification-bell public-notification-link" href="{% url 'notification_list' %}" aria-label="Notifications"><i class="bi bi-bell"></i>{% if unread_notification_count %}<span class="notification-badge">{{ unread_notification_count }}</span>{% endif %}</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="signout-top"><i class="bi bi-box-arrow-right"></i> Sign out</button></form>{% else %}<a class="top-link" href="{% url 'login' %}">Sign in</a><a class="top-signup" href="{% url 'signup' %}">Create account</a>{% endif %}</div></header>{% endif %}
+    <section class="page-content{% if is_home %} public-home-content{% endif %}">
       {% if messages %}<div class="message-stack">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}</div>{% endif %}
       {% block content %}{% endblock %}
-      <footer class="footer-note">© {% now "Y" %} Tiamo's Lounge <span>Made for good nights.</span></footer>
+      {% if not is_home %}<footer class="footer-note">© {% now "Y" %} Tiamo's Lounge <span>Made for good nights.</span></footer>{% endif %}
     </section>
   </main>
 </div>

@@ -1,0 +1,34 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Support center · Tiamo's Lounge{% endblock %}
+{% block crumb %}Support center{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">HELP & SYSTEM SUPPORT</div><h1>Support center</h1><p>Send a question or report a problem with the Tiamo's Lounge system.</p></div>
+</div>
+<div class="support-layout">
+  <section class="panel support-form-panel">
+    <div class="eyebrow">NEW REQUEST</div><h2>How can we help?</h2>
+    <form method="post" class="form-stack">
+      {% csrf_token %}
+      {% for field in form %}<div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>
+        {{ field }}
+        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      </div>{% endfor %}
+      <button class="btn btn-gold">Send support request <i class="bi bi-arrow-right"></i></button>
+    </form>
+  </section>
+  <section class="panel support-list-panel">
+    <div class="support-list-heading"><div><div class="eyebrow">{% if can_manage_support %}INCOMING REQUESTS{% else %}YOUR REQUESTS{% endif %}</div><h2>{% if can_manage_support %}Support queue{% else %}Request history{% endif %}</h2></div><span class="support-count">{{ support_requests|length }}</span></div>
+    <div class="support-request-list">
+      {% for item in support_requests %}
+      <article class="support-request-card">
+        <div class="support-request-top"><div><h3>{{ item.subject }}</h3><small>{% if can_manage_support %}{{ item.submitted_by|default:'Account removed' }} · {% endif %}{{ item.created_at|date:'j M Y, g:i A' }}</small></div><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>
+        <p>{{ item.message|linebreaksbr }}</p>
+        {% if can_manage_support %}<form method="post" action="{% url 'support_request_update' item.pk %}" class="support-status-form">{% csrf_token %}<label for="status-{{ item.pk }}">Update status</label><select id="status-{{ item.pk }}" name="status" class="form-select form-select-sm"><option value="open" {% if item.status == 'open' %}selected{% endif %}>Open</option><option value="in_progress" {% if item.status == 'in_progress' %}selected{% endif %}>In progress</option><option value="resolved" {% if item.status == 'resolved' %}selected{% endif %}>Resolved</option></select><button class="btn btn-outline-gold btn-sm">Save status</button></form>{% endif %}
+      </article>
+      {% empty %}<div class="empty-compact">No support requests yet. Send a request above if you need help.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

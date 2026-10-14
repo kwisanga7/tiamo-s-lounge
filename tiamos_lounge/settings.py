@@ -41,6 +41,7 @@ TEMPLATES = [{
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        "lounge.context_processors.notification_summary",
     ]},
 }]
 WSGI_APPLICATION = "tiamos_lounge.wsgi.application"
@@ -61,8 +62,10 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/accounts/post-login/"
 LOGOUT_REDIRECT_URL = "/events/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",

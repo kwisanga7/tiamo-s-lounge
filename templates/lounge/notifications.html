@@ -1,0 +1,18 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Notifications · Tiamo's Lounge{% endblock %}
+{% block crumb %}Notifications{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">UPDATES FOR YOU</div><h1>Notifications</h1><p>Bookings, payments, support updates, and account activity that concern you.</p></div>
+  {% if unread_notification_count %}<form method="post" action="{% url 'notification_mark_all_read' %}">{% csrf_token %}<button class="btn btn-outline-gold">Mark all as read</button></form>{% endif %}
+</div>
+<div class="notification-list">
+  {% for notification in notifications %}
+  <a class="notification-item{% if not notification.is_read %} unread{% endif %}" href="{% url 'notification_open' notification.pk %}">
+    <span class="notification-item-icon"><i class="bi {% if notification.category == 'payment' %}bi-credit-card{% elif notification.category == 'support' %}bi-life-preserver{% elif notification.category == 'booking' %}bi-ticket-perforated{% elif notification.category == 'account' %}bi-person-check{% elif notification.category == 'check_in' %}bi-qr-code-scan{% else %}bi-bell{% endif %}"></i></span>
+    <span class="notification-item-copy"><b>{{ notification.title }}</b><span>{{ notification.message }}</span><small>{{ notification.created_at|date:'j M Y, g:i A' }}</small></span>
+    {% if not notification.is_read %}<span class="notification-unread-dot" aria-label="Unread"></span>{% endif %}
+  </a>
+  {% empty %}<div class="panel empty-wide"><span class="empty-icon"><i class="bi bi-bell"></i></span><h3>You're all caught up</h3><p>Important updates will show here.</p></div>{% endfor %}
+</div>
+{% endblock %}

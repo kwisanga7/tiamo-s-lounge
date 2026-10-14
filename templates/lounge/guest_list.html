@@ -1,0 +1,20 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Guest list · Tiamo's Lounge{% endblock %}
+{% block crumb %}Guest list{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">DOOR & EVENT OPERATIONS</div><h1>Guest list</h1><p>Find a guest, confirm ticket status, and check in paid tickets.</p></div><a class="btn btn-gold" href="{% url 'check_in' %}"><i class="bi bi-qr-code-scan"></i> Scan a QR ticket</a></div>
+<section class="panel guest-filter-panel">
+  <form method="get" class="guest-filter-form">
+    <div class="form-field"><label for="event-select">Event</label><select class="form-select" id="event-select" name="event"><option value="">Choose an event</option>{% for event in events %}<option value="{{ event.pk }}" {% if selected_event.pk == event.pk %}selected{% endif %}>{{ event.starts_at|date:'D, j M · g:i A' }} — {{ event.title }}</option>{% endfor %}</select></div>
+    <div class="form-field"><label for="guest-search">Guest name</label><input class="form-control" type="search" id="guest-search" name="q" value="{{ search }}" placeholder="Search the guest list"></div>
+    <button class="btn btn-outline-gold"><i class="bi bi-search"></i> Find guests</button>
+  </form>
+</section>
+{% if selected_event %}
+<div class="guest-event-summary"><div><span class="eyebrow">SELECTED EVENT</span><h2>{{ selected_event.title }}</h2><p><i class="bi bi-calendar3"></i> {{ selected_event.starts_at|date:'l, j F · g:i A' }} <span>·</span> <i class="bi bi-geo-alt"></i> {{ selected_event.venue }}</p></div><div class="guest-event-counts"><span><b>{{ paid_count }}</b> ready</span><span><b>{{ checked_in_count }}</b> checked in</span></div></div>
+<div class="panel table-panel"><div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>GUEST</th><th>BOOKED</th><th>TICKET STATUS</th><th>DOOR ACTION</th></tr></thead><tbody>
+{% for ticket in tickets %}<tr><td><div class="person-cell"><span class="booking-avatar">{{ ticket.buyer_name|first|upper }}</span><span><b>{{ ticket.buyer_name }}</b><small class="table-sub">Ticket · {{ ticket.ticket_code|stringformat:'s'|slice:':8'|upper }}</small></span></div></td><td>{{ ticket.created_at|date:'j M, g:i A' }}</td><td><span class="status-pill status-{{ ticket.status }}">{{ ticket.get_status_display }}</span></td><td>{% if ticket.status == 'paid' %}<form method="post" action="{% url 'check_in_ticket' ticket.pk %}">{% csrf_token %}<input type="hidden" name="event" value="{{ selected_event.pk }}"><button class="btn btn-gold btn-sm"><i class="bi bi-person-check"></i> Check in</button></form>{% elif ticket.status == 'checked_in' %}<span class="muted">Arrived {{ ticket.checked_in_at|date:'g:i A' }}</span>{% else %}<span class="muted">Payment must be confirmed</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="4"><div class="empty-compact">{% if search %}No guests match that name.{% else %}No bookings for this event yet.{% endif %}</div></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% else %}<div class="panel empty-wide"><span class="empty-icon"><i class="bi bi-calendar2-event"></i></span><h3>No upcoming events</h3><p>Published events will appear here when they are scheduled.</p></div>{% endif %}
+{% endblock %}
