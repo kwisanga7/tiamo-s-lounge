@@ -1,0 +1,22 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Inventory · Ti'Amo's Lounge{% endblock %}
+{% block crumb %}Inventory{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">STOCK IN, SALES & STOCK OUT</div><h1>Inventory</h1><p>Record deliveries, sold items, and other stock use. Stock on hand updates with each movement.</p></div><a class="btn btn-outline-gold" href="{% url 'manager_report' %}"><i class="bi bi-file-earmark-bar-graph"></i> View reports</a></div>
+<div class="inventory-forms">
+  <section class="panel inventory-form-panel"><div class="eyebrow">SET UP YOUR STOCK LIST</div><h2>Add an inventory item</h2><p>Set the item name and unit once, then select it for imports and sales.</p>
+    <form method="post" class="form-stack">{% csrf_token %}<input type="hidden" name="form_type" value="item">
+      {% for field in item_form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}
+      {% if item_form.non_field_errors %}<div class="field-error">{{ item_form.non_field_errors }}</div>{% endif %}<button class="btn btn-outline-gold"><i class="bi bi-plus-lg"></i> Add item</button>
+    </form>
+  </section>
+  <section class="panel inventory-form-panel"><div class="eyebrow">RECORD A MOVEMENT</div><h2>Import, sale, or stock out</h2><p>For sales, enter the price charged per unit. That sales value flows into your report.</p>
+    <form method="post" class="form-stack">{% csrf_token %}<input type="hidden" name="form_type" value="movement">
+      {% for field in movement_form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}
+      {% if movement_form.non_field_errors %}<div class="field-error">{{ movement_form.non_field_errors }}</div>{% endif %}<button class="btn btn-gold"><i class="bi bi-check2-circle"></i> Record movement</button>
+    </form>
+  </section>
+</div>
+<section class="panel table-panel inventory-table-panel"><div class="panel-heading"><div><div class="eyebrow">CURRENT STOCK</div><h3>Stock on hand</h3></div></div><div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>ITEM</th><th>UNIT</th><th>ON HAND</th></tr></thead><tbody>{% for row in stock_rows %}<tr><td><div class="table-main">{{ row.item.name }}</div></td><td>{{ row.item.unit }}</td><td>{{ row.on_hand }}</td></tr>{% empty %}<tr><td colspan="3"><div class="empty-compact">Add an item, then record an import to start tracking stock.</div></td></tr>{% endfor %}</tbody></table></div></section>
+<section class="panel table-panel inventory-table-panel"><div class="panel-heading"><div><div class="eyebrow">LATEST ACTIVITY</div><h3>Recent inventory movements</h3></div></div><div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>RECORDED</th><th>MOVEMENT</th><th>ITEM</th><th>QUANTITY</th><th>UNIT PRICE / COST</th><th>VALUE</th><th>REFERENCE</th><th>NOTE</th></tr></thead><tbody>{% for movement in recent_movements %}<tr><td>{{ movement.created_at|date:'j M Y, g:i A' }}</td><td>{{ movement.get_movement_type_display }}</td><td>{{ movement.item.name }}</td><td>{{ movement.quantity }} {{ movement.item.unit }}</td><td>R{{ movement.unit_price|floatformat:2 }}</td><td>R{{ movement.line_value|floatformat:2 }}</td><td>{{ movement.payment_reference|default:'—' }}</td><td>{{ movement.note|default:'—' }}</td></tr>{% empty %}<tr><td colspan="8"><div class="empty-compact">No stock movements recorded yet.</div></td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends 'lounge/base.html' %}
-{% block title %}My profile · Tiamo's Lounge{% endblock %}
+{% block title %}My profile · Ti'Amo's Lounge{% endblock %}
 {% block crumb %}My profile{% endblock %}
 {% block content %}
 <div class="page-heading"><div><div class="eyebrow">ACCOUNT SETTINGS</div><h1>My profile</h1><p>Manage your personal details and sign-in security.</p></div><span class="role-pill role-{{ user.profile.role }}">{{ user.profile.get_role_display }}</span></div>
@@ -17,12 +17,12 @@
   <section class="panel profile-card-panel">
     <div class="eyebrow">YOUR VERIFIED PROFILE</div><h2>Member card</h2>
     <div class="member-card">
-      <div class="member-card-brand">TIAMO'S LOUNGE <span>VERIFIED PROFILE</span></div>
+      <div class="member-card-brand">TI'AMO'S LOUNGE <span>VERIFIED PROFILE</span></div>
       <div class="member-card-content">
         <div class="member-card-person"><div class="member-card-avatar">{% if user.profile.profile_picture %}<img src="{{ user.profile.profile_picture.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span>{{ user.username|first|upper }}</span>{% endif %}</div><div><h3>{{ user.get_full_name|default:user.username }}</h3><span class="role-pill role-{{ user.profile.role }}">{{ user.profile.get_role_display }}</span><p>Active member profile</p></div></div>
         <a class="member-card-qr" href="{{ verification_url }}" target="_blank" rel="noopener" aria-label="Open profile verification page"><img src="{% url 'profile_qr' %}" alt="QR code to verify this profile"><small>SCAN TO VERIFY</small></a>
       </div>
-      <div class="member-card-footer">TIAMO'S LOUNGE <span>ID {{ user.profile.verification_token|stringformat:"s"|slice:":8"|upper }}</span></div>
+      <div class="member-card-footer">TI'AMO'S LOUNGE <span>ID {{ user.profile.verification_token|stringformat:"s"|slice:":8"|upper }}</span></div>
     </div>
     <p class="help-text member-card-help">Share or save your card. Anyone scanning its QR code can confirm that your profile is active.</p>
     <a class="btn btn-gold" href="{% url 'profile_card_download' %}"><i class="bi bi-download"></i> Download profile card</a>

@@ -15,7 +15,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             notify_roles(
                 [UserProfile.Role.ADMIN],
                 title="New account registered",
-                message=f"{instance.get_username()} created a Tiamo's Lounge account.",
+                message=f"{instance.get_username()} created a Ti'Amo's Lounge account.",
                 url="/users/",
                 category="account",
             )

@@ -1,0 +1,41 @@
+{% extends 'lounge/base.html' %}
+{% block title %}Manager report · Ti'Amo's Lounge{% endblock %}
+{% block crumb %}Reports{% endblock %}
+{% block content %}
+<div class="page-heading report-heading">
+  <div><div class="eyebrow">EVENT PERFORMANCE</div><h1>Manager report</h1><p>Review bookings, attendance, and paid ticket value for events in a date range.</p></div>
+  <div class="report-actions"><a class="btn btn-outline-gold" href="?start={{ start_date|date:'Y-m-d' }}&amp;end={{ end_date|date:'Y-m-d' }}&amp;format=csv"><i class="bi bi-download"></i> Download CSV</a><button class="btn btn-gold" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print report</button></div>
+</div>
+<form method="get" class="panel report-filter">
+  <div class="report-date-field"><label for="report-start">From</label><input id="report-start" type="date" name="start" value="{{ start_date|date:'Y-m-d' }}" required></div>
+  <div class="report-date-field"><label for="report-end">To</label><input id="report-end" type="date" name="end" value="{{ end_date|date:'Y-m-d' }}" required></div>
+  <button class="btn btn-dark-soft"><i class="bi bi-funnel"></i> Update report</button>
+</form>
+<div class="report-range">Showing events from <strong>{{ start_date|date:'j M Y' }}</strong> to <strong>{{ end_date|date:'j M Y' }}</strong></div>
+<div class="report-summary">
+  <article class="panel report-metric"><span>EVENTS</span><b>{{ totals.events }}</b></article>
+  <article class="panel report-metric"><span>PAID TICKETS</span><b>{{ totals.paid }}</b></article>
+  <article class="panel report-metric"><span>GUESTS CHECKED IN</span><b>{{ totals.checked_in }}</b></article>
+  <article class="panel report-metric"><span>PAID TICKET VALUE</span><b>R{{ revenue|floatformat:2 }}</b><small>Uses current event prices</small></article>
+  <article class="panel report-metric"><span>INVENTORY SALES</span><b>R{{ inventory_sales|floatformat:2 }}</b></article>
+  <article class="panel report-metric"><span>TOTAL RECORDED SALES</span><b>R{{ combined_revenue|floatformat:2 }}</b><small>Tickets + inventory sales</small></article>
+</div>
+<section class="panel table-panel report-table-panel">
+  <div class="panel-heading"><div><div class="eyebrow">EVENT BREAKDOWN</div><h3>Bookings and attendance</h3></div><span class="report-status-note">Pending: {{ totals.pending }} · Refunded: {{ totals.refunded }}</span></div>
+  <div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>EVENT</th><th>DATE</th><th>CAPACITY</th><th>PAID</th><th>CHECKED IN</th><th>PENDING</th><th>REFUNDED</th><th>PAID VALUE</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td><div class="table-main">{{ row.event.title }}</div></td><td>{{ row.event.starts_at|date:'j M Y' }}</td><td>{{ row.event.capacity }}</td><td>{{ row.paid }}</td><td>{{ row.checked_in }}</td><td>{{ row.pending }}</td><td>{{ row.refunded }}</td><td>R{{ row.paid_value|floatformat:2 }}</td></tr>
+  {% empty %}<tr><td colspan="8"><div class="empty-compact">No events fall within this date range.</div></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel table-panel report-table-panel inventory-report-panel"><div class="panel-heading"><div><div class="eyebrow">INVENTORY ACTIVITY</div><h3>Imports and sales by item</h3><span class="report-status-note">Import cost recorded: R{{ imported_cost|floatformat:2 }}</span></div></div>
+  <div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>ITEM</th><th>UNIT</th><th>IMPORTED</th><th>SOLD</th><th>OTHER OUT</th><th>SALES</th><th>IMPORT COST</th><th>CURRENT STOCK</th></tr></thead><tbody>
+  {% for row in inventory_rows %}<tr><td><div class="table-main">{{ row.item.name }}</div></td><td>{{ row.item.unit }}</td><td>{{ row.imported }}</td><td>{{ row.sold }}</td><td>{{ row.other_out }}</td><td>R{{ row.sales|floatformat:2 }}</td><td>R{{ row.import_cost|floatformat:2 }}</td><td>{{ row.on_hand }}</td></tr>
+  {% empty %}<tr><td colspan="8"><div class="empty-compact">No inventory movements in this date range.</div></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel table-panel report-table-panel inventory-report-panel"><div class="panel-heading"><div><div class="eyebrow">MOVEMENT LOG</div><h3>Recorded inventory activity</h3></div></div><div class="table-responsive"><table class="table lounge-table align-middle"><thead><tr><th>RECORDED</th><th>MOVEMENT</th><th>ITEM</th><th>QUANTITY</th><th>UNIT PRICE / COST</th><th>VALUE</th><th>NOTE</th></tr></thead><tbody>
+  {% for movement in inventory_movements %}<tr><td>{{ movement.created_at|date:'j M Y, g:i A' }}</td><td>{{ movement.get_movement_type_display }}</td><td>{{ movement.item.name }}</td><td>{{ movement.quantity }} {{ movement.item.unit }}</td><td>R{{ movement.unit_price|floatformat:2 }}</td><td>R{{ movement.line_value|floatformat:2 }}</td><td>{{ movement.note|default:'—' }}</td></tr>
+  {% empty %}<tr><td colspan="7"><div class="empty-compact">No inventory activity in this date range.</div></td></tr>{% endfor %}
+  </tbody></table></div></section>
+<p class="report-footnote">Paid ticket value uses each event’s current ticket price and counts paid or checked-in tickets. Inventory sales use the recorded sale price for each movement. Total recorded sales combines both figures and is not a profit calculation.</p>
+{% endblock %}

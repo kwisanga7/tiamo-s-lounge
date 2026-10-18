@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, LoungePost, StaffMember, StaffShift, StaffTask, SupportRequest, Ticket, UserProfile
+from .models import Event, LoungePost, MenuItem, StaffMember, StaffShift, StaffTask, SupportRequest, Ticket, UserProfile
 
 
 @admin.register(Event)
@@ -58,3 +58,10 @@ class StaffShiftAdmin(admin.ModelAdmin):
     list_display = ("staff_member", "event", "starts_at", "ends_at", "checked_in_at", "checked_out_at")
     list_filter = ("event", "starts_at")
     search_fields = ("staff_member__name", "event__title")
+
+
+@admin.register(MenuItem)
+class MenuItemAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "price", "available", "display_order")
+    list_filter = ("category", "available")
+    search_fields = ("name", "description")

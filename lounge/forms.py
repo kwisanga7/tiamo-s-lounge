@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.password_validation import validate_password
-from .models import Event, LoungePost, StaffMember, StaffShift, StaffTask, SupportRequest, Ticket, UserProfile
+from .models import Event, FinanceObligation, InventoryItem, InventoryMovement, LoungePost, MenuItem, PayrollSalary, StaffMember, StaffShift, StaffTask, SupportRequest, Ticket, UserProfile
 
 User = get_user_model()
 
@@ -155,6 +155,101 @@ class EventForm(forms.ModelForm):
         return image
 
 
+class MenuItemForm(forms.ModelForm):
+    price = forms.DecimalField(max_digits=8, decimal_places=2, min_value=0.01)
+
+    class Meta:
+        model = MenuItem
+        fields = ["name", "description", "category", "price", "image", "available", "display_order"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+            "image": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+        }
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image and image.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("Choose a menu photo smaller than 5 MB.")
+        return image
+
+
+class InventoryItemForm(forms.ModelForm):
+    class Meta:
+        model = InventoryItem
+        fields = ["name", "unit"]
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "e.g. Sparkling water"}), "unit": forms.TextInput(attrs={"placeholder": "bottle, kg, case..."})}
+
+
+class InventoryMovementForm(forms.ModelForm):
+    class Meta:
+        model = InventoryMovement
+        fields = ["item", "movement_type", "quantity", "unit_price", "payment_reference", "note"]
+        widgets = {"quantity": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}), "unit_price": forms.NumberInput(attrs={"min": "0", "step": "0.01"}), "payment_reference": forms.TextInput(attrs={"placeholder": "Receipt or payment reference"}), "note": forms.TextInput(attrs={"placeholder": "Optional supplier or sale note"})}
+
+    def clean(self):
+        cleaned = super().clean()
+        quantity = cleaned.get("quantity")
+        unit_price = cleaned.get("unit_price")
+        movement_type = cleaned.get("movement_type")
+        if quantity is not None and quantity <= 0:
+            self.add_error("quantity", "Enter a quantity greater than zero.")
+        if unit_price is not None and unit_price < 0:
+            self.add_error("unit_price", "Enter zero or a positive amount.")
+        if movement_type == InventoryMovement.MovementType.SALE and unit_price is not None and unit_price <= 0:
+            self.add_error("unit_price", "Enter the sale price for each unit sold.")
+        return cleaned
+
+
+class PayrollSalaryForm(forms.ModelForm):
+    class Meta:
+        model = PayrollSalary
+        fields = ["staff_member", "monthly_salary", "effective_from", "active"]
+        widgets = {"effective_from": forms.DateInput(attrs={"type": "date"}), "monthly_salary": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["staff_member"].queryset = StaffMember.objects.filter(active=True).order_by("name")
+
+    def clean_monthly_salary(self):
+        value = self.cleaned_data["monthly_salary"]
+        if value <= 0:
+            raise forms.ValidationError("Monthly salary must be greater than zero.")
+        return value
+
+
+class PayrollPaymentForm(forms.Form):
+    additions = forms.DecimalField(required=False, min_value=0, max_digits=10, decimal_places=2, initial=0)
+    deductions = forms.DecimalField(required=False, min_value=0, max_digits=10, decimal_places=2, initial=0)
+    payment_reference = forms.CharField(required=False, max_length=120)
+
+    def __init__(self, *args, base_salary, **kwargs):
+        self.base_salary = base_salary
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.base_salary + (cleaned.get("additions") or 0) - (cleaned.get("deductions") or 0) <= 0:
+            raise forms.ValidationError("Net pay must be greater than zero.")
+        return cleaned
+
+
+class FinanceObligationForm(forms.ModelForm):
+    class Meta:
+        model = FinanceObligation
+        fields = ["title", "category", "due_date", "amount", "payment_reference", "note"]
+        widgets = {
+            "due_date": forms.DateInput(attrs={"type": "date"}),
+            "amount": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
+            "payment_reference": forms.TextInput(attrs={"placeholder": "Add when paid"}),
+        }
+
+    def clean_amount(self):
+        value = self.cleaned_data["amount"]
+        if value <= 0:
+            raise forms.ValidationError("Enter an amount greater than zero.")
+        return value
+
+
 class StaffForm(forms.ModelForm):
     class Meta:
         model = StaffMember
@@ -216,7 +311,7 @@ class LoungePostForm(forms.ModelForm):
         model = LoungePost
         fields = ["title", "message", "image", "video", "notify_role"]
         widgets = {
-            "message": forms.Textarea(attrs={"rows": 6, "placeholder": "Write an update for the Tiamo's Lounge community..."}),
+            "message": forms.Textarea(attrs={"rows": 6, "placeholder": "Write an update for the Ti'Amo's Lounge community..."}),
             "image": forms.ClearableFileInput(attrs={"accept": "image/*"}),
             "video": forms.ClearableFileInput(attrs={"accept": "video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"}),
         }

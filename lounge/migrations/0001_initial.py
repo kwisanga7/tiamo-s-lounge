@@ -1,4 +1,4 @@
-# Initial schema for Tiamo's Lounge.
+# Initial schema for Ti'Amo's Lounge.
 import uuid
 
 import django.utils.timezone
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=140)),
                 ("description", models.TextField(blank=True)),
                 ("starts_at", models.DateTimeField()),
-                ("venue", models.CharField(default="Tiamo's Lounge", max_length=160)),
+                ("venue", models.CharField(default="Ti'Amo's Lounge", max_length=160)),
                 ("ticket_price", models.DecimalField(decimal_places=2, max_digits=9)),
                 ("capacity", models.PositiveIntegerField(default=100)),
                 ("published", models.BooleanField(default=False)),

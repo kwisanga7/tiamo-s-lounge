@@ -1,17 +1,17 @@
 {% extends 'lounge/base.html' %}
-{% block title %}Profile verified · Tiamo's Lounge{% endblock %}
+{% block title %}Profile verified · Ti'Amo's Lounge{% endblock %}
 {% block crumb %}Profile verification{% endblock %}
 {% block content %}
 <main class="verification-page">
   <section class="panel verification-card">
     <div class="verified-check"><i class="bi bi-patch-check-fill"></i></div>
-    <div class="eyebrow">TIAMO'S LOUNGE</div>
+    <div class="eyebrow">TI'AMO'S LOUNGE</div>
     <h1>Verified profile</h1>
     <div class="member-card-avatar verification-avatar">{% if verified_profile.profile_picture %}<img src="{{ verified_profile.profile_picture.url }}" alt="{{ verified_profile.user.get_full_name|default:verified_profile.user.username }}">{% else %}<span>{{ verified_profile.user.username|first|upper }}</span>{% endif %}</div>
     <h2>{{ verified_profile.user.get_full_name|default:verified_profile.user.username }}</h2>
     <span class="role-pill role-{{ verified_profile.role }}">{{ verified_profile.get_role_display }}</span>
-    <p>This account is active and its profile is verified by Tiamo's Lounge.</p>
-    <a href="{% url 'home' %}" class="btn btn-gold">Visit Tiamo's Lounge</a>
+    <p>This account is active and its profile is verified by Ti'Amo's Lounge.</p>
+    <a href="{% url 'home' %}" class="btn btn-gold">Visit Ti'Amo's Lounge</a>
   </section>
 </main>
 {% endblock %}

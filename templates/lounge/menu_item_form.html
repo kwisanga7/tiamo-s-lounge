@@ -1,0 +1,7 @@
+{% extends 'lounge/base.html' %}
+{% block title %}{{ title }} · Ti'Amo's Lounge{% endblock %}
+{% block crumb %}Menu{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">MENU MANAGEMENT</div><h1>{{ title }}</h1><p>Menu items marked available are shown to public visitors.</p></div></div>
+<section class="panel form-panel menu-form-panel"><form method="post" enctype="multipart/form-data" class="form-stack">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>{{ field }}{% if field.name == 'image' %}<small class="help-text">Optional photo, up to 5 MB.</small>{% endif %}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="btn btn-gold">{% if is_create %}Add to menu{% else %}Save changes{% endif %} <i class="bi bi-check2"></i></button><a class="btn btn-outline-secondary" href="{% url 'menu_page' %}">Cancel</a></div></form></section>
+{% endblock %}

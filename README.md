@@ -1,4 +1,4 @@
-# Tiamo's Lounge
+# Ti'Amo's Lounge
 
 A Django starter app for lounge operations, event listings, ticket reservations, staff records and QR based guest check-in.
 

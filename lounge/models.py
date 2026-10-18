@@ -9,7 +9,7 @@ class Event(models.Model):
     title = models.CharField(max_length=140)
     description = models.TextField(blank=True)
     starts_at = models.DateTimeField()
-    venue = models.CharField(max_length=160, default="Tiamo's Lounge")
+    venue = models.CharField(max_length=160, default="Ti'Amo's Lounge")
     image = models.ImageField(upload_to="events/", blank=True)
     ticket_price = models.DecimalField(max_digits=9, decimal_places=2)
     capacity = models.PositiveIntegerField(default=100)
@@ -29,6 +29,99 @@ class Event(models.Model):
     @property
     def tickets_remaining(self):
         return max(0, self.capacity - self.tickets.filter(status__in=["pending", "paid", "checked_in"]).count())
+
+
+class MenuItem(models.Model):
+    class Category(models.TextChoices):
+        STARTERS = "starters", "Starters"
+        MAINS = "mains", "Mains"
+        DESSERTS = "desserts", "Desserts"
+        COCKTAILS = "cocktails", "Cocktails"
+        DRINKS = "drinks", "Drinks"
+        OTHER = "other", "Other"
+
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    image = models.ImageField(upload_to="menu/", blank=True)
+    available = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["category", "display_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class InventoryItem(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    unit = models.CharField(max_length=30, default="unit")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.unit})"
+
+
+class InventoryMovement(models.Model):
+    class MovementType(models.TextChoices):
+        IMPORT = "import", "Stock received (import)"
+        SALE = "sale", "Sold (export)"
+        OTHER_OUT = "other_out", "Other stock out"
+
+    item = models.ForeignKey(InventoryItem, on_delete=models.PROTECT, related_name="movements")
+    movement_type = models.CharField(max_length=12, choices=MovementType.choices)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_reference = models.CharField(max_length=120, blank=True)
+    note = models.CharField(max_length=240, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_movement_type_display()} · {self.item.name} · {self.quantity} {self.item.unit}"
+
+    @property
+    def line_value(self):
+        return self.quantity * self.unit_price
+
+
+class FinanceObligation(models.Model):
+    class Category(models.TextChoices):
+        RENT = "rent", "Rent"
+        UTILITIES = "utilities", "Utilities"
+        SUPPLIER = "supplier", "Supplier"
+        TAX = "tax", "Tax or statutory"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Due"
+        PAID = "paid", "Paid"
+
+    title = models.CharField(max_length=160)
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
+    due_date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    payment_reference = models.CharField(max_length=120, blank=True)
+    note = models.CharField(max_length=240, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["due_date", "title"]
+
+    def __str__(self):
+        return f"{self.title} · {self.due_date:%d %b %Y}"
 
 
 class StaffMember(models.Model):
@@ -51,6 +144,49 @@ class StaffMember(models.Model):
 
     def __str__(self):
         return f"{self.name} · {self.get_role_display()}"
+
+
+class PayrollSalary(models.Model):
+    staff_member = models.OneToOneField(StaffMember, on_delete=models.CASCADE, related_name="salary_record")
+    monthly_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    effective_from = models.DateField(default=timezone.localdate)
+    active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ["staff_member__name"]
+
+    def __str__(self):
+        return f"{self.staff_member.name} · R{self.monthly_salary}/month"
+
+
+class PayrollEntry(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending payment"
+        PAID = "paid", "Paid"
+
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.PROTECT, related_name="payroll_entries")
+    period_start = models.DateField()
+    base_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    additions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    payment_reference = models.CharField(max_length=120, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["staff_member__name"]
+        constraints = [models.UniqueConstraint(fields=["staff_member", "period_start"], name="unique_staff_payroll_period")]
+
+    def __str__(self):
+        return f"{self.staff_member.name} · {self.period_start:%B %Y}"
+
+    @property
+    def net_pay(self):
+        return self.base_salary + self.additions - self.deductions
 
 
 class StaffTask(models.Model):
@@ -138,6 +274,7 @@ class Ticket(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    payment_reference = models.CharField(max_length=120, blank=True)
     checked_in_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

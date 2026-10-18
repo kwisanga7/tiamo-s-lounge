@@ -1,4 +1,4 @@
-"""Settings for the Tiamo's Lounge management app."""
+"""Settings for the Ti'Amo's Lounge management app."""
 import os
 from pathlib import Path
 
